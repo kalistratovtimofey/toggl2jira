@@ -1,0 +1,4 @@
+services:
+  App\Api\TogglApi:
+    class: App\Tests\_support\Mock\TogglApiMock
+    autowire: true
