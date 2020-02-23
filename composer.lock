@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "47693813f38d249c99f28da71cc4f127",
+    "content-hash": "fb8b9ba8a51702366d7db1ad0d7d62bb",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -194,54 +194,6 @@
                 "url"
             ],
             "time": "2019-07-01T23:21:34+00:00"
-        },
-        {
-            "name": "morningtrain/toggl-api",
-            "version": "v1.0.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Morning-Train/toggl-api.git",
-                "reference": "231f9bdb7637652e447829bdee694f205b4b106c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Morning-Train/toggl-api/zipball/231f9bdb7637652e447829bdee694f205b4b106c",
-                "reference": "231f9bdb7637652e447829bdee694f205b4b106c",
-                "shasum": ""
-            },
-            "require": {
-                "guzzlehttp/guzzle": "^6.3"
-            },
-            "require-dev": {
-                "escapestudios/symfony2-coding-standard": "2.*",
-                "squizlabs/php_codesniffer": "2.*"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "MorningTrain\\TogglApi\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GNU General Public License v3.0"
-            ],
-            "authors": [
-                {
-                    "name": "Bjarne Bonde",
-                    "email": "bb@morningtain.dk",
-                    "homepage": "http://morningtrain.dk/",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A complete native php wrapper for the Toggl API",
-            "homepage": "http://morningtrain.dk/",
-            "keywords": [
-                "api",
-                "php",
-                "toggl"
-            ],
-            "time": "2019-03-04T07:37:07+00:00"
         },
         {
             "name": "psr/cache",

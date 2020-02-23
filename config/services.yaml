@@ -25,6 +25,17 @@ services:
                   - '%env(JIRA_PASS)%'
               connect_timeout: 1
               exceptions: true
+
+    guzzle.client.toggl_api:
+        class: 'GuzzleHttp\Client'
+        arguments:
+            - base_uri: '%env(TOGGL_HOST)%'
+              auth:
+                  - '%env(TOGGL_API_KEY)%'
+                  - 'api_token'
+              connect_timeout: 1
+              exceptions: true
+
     App\Api\JiraApi:
         arguments:
             - '@guzzle.client.jira_api'
@@ -32,7 +43,7 @@ services:
 
     App\Api\TogglApi:
         arguments:
-            $apiKey: '%env(TOGGL_API_KEY)%'
+            - '@guzzle.client.toggl_api'
 
     App\Manager\TogglManager:
         public: true

@@ -2,8 +2,8 @@
 
 namespace App\Api;
 
+use App\DTO\TimeEntryDTO;
 use GuzzleHttp\Client;
-use MorningTrain\TogglApi\TogglApi as ExternalTogglApi;
 
 class TogglApi
 {
@@ -12,16 +12,32 @@ class TogglApi
      */
     private $client;
 
-    private $togglClient;
-
-    public function __construct(Client $client, string $apiKey)
+    public function __construct(Client $client)
     {
         $this->client = $client;
-        $this->togglClient = new ExternalTogglApi($apiKey);
     }
 
     public function getTodayTimeEntries(): array
     {
-        return $this->togglClient->getTimeEntriesInRange('2020-02-01T00:00:00.000Z', '2020-02-15T00:00:00.000Z');
+        $uri = "/api/v8/time_entries";
+        $response = $this->client->get($uri);
+        $timeEntries = json_decode($response->getBody(), true);
+
+        $timeEntryDTOs = [];
+
+        foreach ($timeEntries as $timeEntry) {
+            $timeEntry = (array) $timeEntry;
+
+            $timeEntryDTO = new TimeEntryDTO();
+            $timeEntryDTO->id = $timeEntry['id'];
+            $timeEntryDTO->description = $timeEntry['description'] ?? '';
+            $timeEntryDTO->at = new \DateTime($timeEntry['at']);
+            $timeEntryDTO->start = new \DateTime($timeEntry['start']);
+            $timeEntryDTO->stop = new \DateTime($timeEntry['stop']);
+            $timeEntryDTO->duration = $timeEntry['duration'];
+
+            $timeEntryDTOs[] = $timeEntryDTO;
+        }
+        return $timeEntryDTOs;
     }
 }
