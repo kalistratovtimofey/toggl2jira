@@ -17,9 +17,9 @@ class TogglApi
         $this->client = $client;
     }
 
-    public function getTodayTimeEntries(): array
+    public function getTimeEntries(\DateTime $startDate, \DateTime $endDate = null): array
     {
-        $uri = "/api/v8/time_entries";
+        $uri = $this->buildTimeEntriesUri($startDate, $endDate);
         $response = $this->client->get($uri);
         $timeEntries = json_decode($response->getBody(), true);
 
@@ -33,11 +33,28 @@ class TogglApi
             $timeEntryDTO->description = $timeEntry['description'] ?? '';
             $timeEntryDTO->at = new \DateTime($timeEntry['at']);
             $timeEntryDTO->start = new \DateTime($timeEntry['start']);
-            $timeEntryDTO->stop = new \DateTime($timeEntry['stop']);
+            $timeEntryDTO->stop = isset($timeEntry['stop']) ? new \DateTime($timeEntry['stop']) : null;
             $timeEntryDTO->duration = $timeEntry['duration'];
 
             $timeEntryDTOs[] = $timeEntryDTO;
         }
         return $timeEntryDTOs;
+    }
+
+    private function buildTimeEntriesUri(\DateTime $startDate, \DateTime $endDate = null): string
+    {
+        $uri = "/api/v8/time_entries";
+        $uri .= "?start_date=" . urlencode($this->formDateToTogglCompatibleFormat($startDate));
+
+        if ($endDate) {
+            $uri .= "/end_date=" . urlencode($this->formDateToTogglCompatibleFormat($endDate));
+        }
+
+        return $uri;
+    }
+
+    private function formDateToTogglCompatibleFormat(\DateTime $dateTime)
+    {
+        return $dateTime->format(\DateTime::ATOM);
     }
 }

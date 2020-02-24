@@ -39,7 +39,6 @@ services:
     App\Api\JiraApi:
         arguments:
             - '@guzzle.client.jira_api'
-            - '%env(DIFF_WITH_UTC_IN_HOURS)%'
 
     App\Api\TogglApi:
         arguments:
@@ -47,6 +46,3 @@ services:
 
     App\Manager\TogglManager:
         public: true
-
-
-
