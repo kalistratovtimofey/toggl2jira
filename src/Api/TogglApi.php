@@ -47,7 +47,7 @@ class TogglApi
         $uri .= "?start_date=" . urlencode($this->formDateToTogglCompatibleFormat($startDate));
 
         if ($endDate) {
-            $uri .= "/end_date=" . urlencode($this->formDateToTogglCompatibleFormat($endDate));
+            $uri .= "&end_date=" . urlencode($this->formDateToTogglCompatibleFormat($endDate));
         }
 
         return $uri;
