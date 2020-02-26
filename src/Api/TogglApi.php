@@ -38,6 +38,7 @@ class TogglApi
 
             $timeEntryDTOs[] = $timeEntryDTO;
         }
+
         return $timeEntryDTOs;
     }
 

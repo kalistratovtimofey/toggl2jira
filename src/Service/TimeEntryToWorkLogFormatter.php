@@ -20,7 +20,7 @@ class TimeEntryToWorkLogFormatter
     {
         $workLogs = [];
 
-        foreach ($timeEntries as $timeEntry) {
+        foreach ($timeEntries as $key => $timeEntry) {
             $workLog = new WorkLogDTO();
 
             $issueKey = $this->getIssueKeyFromTimeEntryDescription($timeEntry->description);
@@ -35,9 +35,14 @@ class TimeEntryToWorkLogFormatter
                 throw new \DomainException("Issue description not found for time entry with ID {$timeEntry->id}");
             }
 
-            $workLog->comment = $this->getIssueCommentFromTimeEntryDescription($timeEntry->description);;
-            $workLog->started = $this->getStartedTime($timeEntry->start);
+            $workLog->comment = $this->getIssueCommentFromTimeEntryDescription($timeEntry->description);
+
             $workLog->timeSpent = $this->getTimeSpentInMinutes($timeEntry->duration);
+
+            $previousTimeEntryStart = isset($timeEntries[$key - 1]) ? $timeEntries[$key - 1]->start : null;
+            $workLog->started = $this->getStartedTime($timeEntry->start, $previousTimeEntryStart);
+            $this->shouldIncreaseNextTimeEntry = false;
+
 
             $workLogs[] = $workLog;
         }
@@ -67,14 +72,25 @@ class TimeEntryToWorkLogFormatter
         return isset($descriptionMatches[0]) ? trim($descriptionMatches[0]) : null;
     }
 
-    private function getStartedTime(\DateTime $dateTime)
+    private function getStartedTime(\DateTime $currentDateTime, ?\DateTime $previousDateTime)
     {
-        if ($this->shouldIncreaseNextTimeEntry) {
-            $dateTime->modify("+1 minute");
-            $this->shouldIncreaseNextTimeEntry = false;
+        if ($this->shouldIncreaseTimeEntry($currentDateTime, $previousDateTime)) {
+            $currentDateTime->modify("+1 minute");
         }
 
-        return $this->getJiraCompatibleFormattedTime($dateTime);
+        return $this->getJiraCompatibleFormattedTime($currentDateTime);
+    }
+
+    private function shouldIncreaseTimeEntry(\DateTime $currentDateTime, ?\DateTime $previousDateTime): bool
+    {
+        if (!$previousDateTime) {
+            return false;
+        }
+
+        $currentDateTimeInUnix = strtotime($currentDateTime->format('Y-m-d H:i'));
+        $previousDateTimeInUnix = strtotime($previousDateTime->format('Y-m-d H:i'));
+
+        return $currentDateTimeInUnix === $previousDateTimeInUnix && $this->shouldIncreaseNextTimeEntry;
     }
 
     private function getJiraCompatibleFormattedTime(\DateTime $dateTime)
@@ -84,12 +100,13 @@ class TimeEntryToWorkLogFormatter
 
     private function getTimeSpentByDurationInSeconds(int $durationInSeconds)
     {
-        $minutes = $durationInSeconds / 60;
+        $minutes = $durationInSeconds < 60 ? 1 : $durationInSeconds / 60;
         $roundedMinutes = round($minutes);
 
-        $diff = $minutes / $roundedMinutes;
+        $diff = $minutes - $roundedMinutes;
 
-        $this->shouldIncreaseNextTimeEntry = $diff > 0.5;
+        // TODO extract coefficient to parameter
+        $this->shouldIncreaseNextTimeEntry = $diff > 0.6;
 
         return $roundedMinutes;
     }
