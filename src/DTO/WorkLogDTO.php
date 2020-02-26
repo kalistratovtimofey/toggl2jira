@@ -15,4 +15,7 @@ class WorkLogDTO
 
     /** @var int */
     public $timeSpentSeconds;
+
+    /** @var string */
+    public $timeSpent;
 }

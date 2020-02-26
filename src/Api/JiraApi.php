@@ -26,7 +26,7 @@ class JiraApi
           RequestOptions::JSON => [
             'started' => $workLogDTO->started,
             'comment' => $workLogDTO->comment,
-            'timeSpentSeconds' => $workLogDTO->timeSpentSeconds
+            'timeSpent' => $workLogDTO->timeSpent
           ],
         ]);
     }

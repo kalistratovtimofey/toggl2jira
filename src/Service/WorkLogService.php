@@ -4,11 +4,12 @@ namespace App\Service;
 
 use App\Api\JiraApi;
 use App\Api\TogglApi;
-use App\DTO\TimeEntryDTO;
 use App\DTO\WorkLogDTO;
 
 class WorkLogService
 {
+    private const MINUTES_POSTFIX_IN_DURATION = "m";
+
     /**
      * @var TogglApi
      */
@@ -19,10 +20,16 @@ class WorkLogService
      */
     private $jiraApi;
 
-    public function __construct(TogglApi $togglApi, JiraApi $jiraApi)
+    /**
+     * @var TimeEntryToWorkLogFormatter
+     */
+    private $timeEntryToWorkLogFormatter;
+
+    public function __construct(TogglApi $togglApi, JiraApi $jiraApi, TimeEntryToWorkLogFormatter $timeEntryToWorkLogFormatter)
     {
         $this->togglApi = $togglApi;
         $this->jiraApi = $jiraApi;
+        $this->timeEntryToWorkLogFormatter = $timeEntryToWorkLogFormatter;
     }
 
     public function uploadWorkLogs(string $startDate, ?string $endDate)
@@ -30,7 +37,7 @@ class WorkLogService
         $startDateTime = $this->getDateTimeFromString($startDate);
         $endDateTime = $endDate ? $this->getDateTimeFromString($endDate) : null;
 
-        $workLogs = $this->formatTimeEntryToWorkLog(
+        $workLogs = $this->timeEntryToWorkLogFormatter->format(
             $this->togglApi->getTimeEntries($startDateTime, $endDateTime)
         );
 
@@ -43,68 +50,15 @@ class WorkLogService
     }
 
     /**
-     * @param TimeEntryDTO[] $timeEntries
-     * @return WorkLogDTO[]
-     */
-    private function formatTimeEntryToWorkLog(array $timeEntries): array
-    {
-        $workLogs = [];
-
-        foreach ($timeEntries as $timeEntry) {
-            $workLog = new WorkLogDTO();
-
-            $issueKey = $this->getIssueKeyFromTimeEntryDescription($timeEntry->description);
-
-            if ($issueKey === null) {
-                throw new \DomainException("Issue key not found for time entry with ID {$timeEntry->id}");
-            }
-
-            $workLog->issueKey = $issueKey;
-
-            $comment = $this->getIssueCommentFromTimeEntryDescription($timeEntry->description);
-
-            if ($issueKey === null) {
-                throw new \DomainException("Issue description not found for time entry with ID {$timeEntry->id}");
-            }
-
-            $workLog->comment = $comment;
-            $workLog->started = $this->getJiraCompatibleFormattedTime($timeEntry->start);
-            $workLog->timeSpentSeconds = $timeEntry->duration;
-
-            $workLogs[] = $workLog;
-        }
-
-        return $workLogs;
-    }
-
-    /**
      * @param WorkLogDTO[] $workLogs
      */
     private function uploadWorkLogsToJira(array $workLogs): void
     {
         foreach ($workLogs as $workLog) {
-            if ($workLog->timeSpentSeconds > 0) {
+            $timeSpentInMinutes = rtrim($workLog->timeSpent, self::MINUTES_POSTFIX_IN_DURATION);
+            if ((int)$timeSpentInMinutes > 0) {
                 $this->jiraApi->addWorkLog($workLog);
             }
         }
-    }
-
-    private function getIssueKeyFromTimeEntryDescription(string $description): ?string
-    {
-        preg_match('/.+?(?=:)/', $description, $taskKeyMatches);
-
-        return isset($taskKeyMatches[0]) ? trim($taskKeyMatches[0]) : null;
-    }
-
-    private function getIssueCommentFromTimeEntryDescription(string $description): ?string
-    {
-        preg_match('/(?<=:)[^\]]+/', $description, $descriptionMatches);
-
-        return isset($descriptionMatches[0]) ? trim($descriptionMatches[0]) : null;
-    }
-
-    private function getJiraCompatibleFormattedTime(\DateTime $dateTime)
-    {
-        return $dateTime->format('Y-m-d\TH:i:s') . '.000+0000';
     }
 }
