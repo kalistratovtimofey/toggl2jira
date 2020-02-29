@@ -5,7 +5,7 @@ namespace App\Service;
 use App\DTO\TimeEntryDTO;
 use App\DTO\WorkLogDTO;
 
-class TimeEntryToWorklogFormatter
+class TimeEntryToWorklogConverter
 {
     /**
      * @var bool
@@ -16,7 +16,7 @@ class TimeEntryToWorklogFormatter
      * @param  TimeEntryDTO[]  $timeEntries
      * @return WorkLogDTO[]
      */
-    public function format(array $timeEntries)
+    public function convert(array $timeEntries)
     {
         $workLogs = [];
 
@@ -37,7 +37,10 @@ class TimeEntryToWorklogFormatter
 
             $workLog->comment = $this->getIssueCommentFromTimeEntryDescription($timeEntry->description);
 
-            $workLog->timeSpent = $this->getTimeSpentInMinutes($timeEntry->duration);
+            $durationInMinutes = $timeEntry->duration < 60 ? 1 : $timeEntry->duration / 60;
+            $this->setShouldIncreaseNextTimeEntry($durationInMinutes);
+
+            $workLog->timeSpent = round($durationInMinutes) . WorklogService::MINUTES_POSTFIX_IN_DURATION;
 
             $previousTimeEntryStart = isset($timeEntries[$key - 1]) ? $timeEntries[$key - 1]->start : null;
             $workLog->started = $this->getStartedTime($timeEntry->start, $previousTimeEntryStart);
@@ -49,14 +52,6 @@ class TimeEntryToWorklogFormatter
 
         return $workLogs;
     }
-
-    private function getTimeSpentInMinutes(string $duration): string
-    {
-        $timeEntryInMinutes = $this->getTimeSpentByDurationInSeconds($duration);
-
-        return"{$timeEntryInMinutes}m";
-    }
-
 
     private function getIssueKeyFromTimeEntryDescription(string $description): ?string
     {
@@ -98,16 +93,8 @@ class TimeEntryToWorklogFormatter
         return $dateTime->format('Y-m-d\TH:i:s') . '.000+0000';
     }
 
-    private function getTimeSpentByDurationInSeconds(int $durationInSeconds)
+    private function setShouldIncreaseNextTimeEntry(float $durationInMinutes): void
     {
-        $minutes = $durationInSeconds < 60 ? 1 : $durationInSeconds / 60;
-        $roundedMinutes = round($minutes);
-
-        $diff = $minutes - $roundedMinutes;
-
-        // TODO extract coefficient to parameter
-        $this->shouldIncreaseNextTimeEntry = $diff > 0.6;
-
-        return $roundedMinutes;
+        $this->shouldIncreaseNextTimeEntry = ($durationInMinutes -  floor($durationInMinutes)) > 0.5;
     }
 }

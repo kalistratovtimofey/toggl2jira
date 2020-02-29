@@ -7,7 +7,7 @@ use App\DTO\WorkLogDTO;
 
 class WorklogService
 {
-    private const MINUTES_POSTFIX_IN_DURATION = "m";
+    public const MINUTES_POSTFIX_IN_DURATION = "m";
 
     /**
      * @var array

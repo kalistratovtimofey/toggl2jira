@@ -8,7 +8,7 @@ use App\Service\TimeEntryStorage\TimeEntryStorage;
 class WorklogUploader
 {
     /**
-     * @var TimeEntryToWorklogFormatter
+     * @var TimeEntryToWorklogConverter
      */
     private $timeEntryToWorklogFormatter;
 
@@ -23,7 +23,7 @@ class WorklogUploader
 
     public function __construct(
       TimeEntryStorage $timeEntryStorage,
-      TimeEntryToWorklogFormatter $timeEntryToWorklogFormatter,
+      TimeEntryToWorklogConverter $timeEntryToWorklogFormatter,
       WorklogService $worklogService
     )
     {
@@ -34,7 +34,7 @@ class WorklogUploader
 
     public function upload(string $startDate, ?string $endDate)
     {
-        $workLogs = $this->timeEntryToWorklogFormatter->format(
+        $workLogs = $this->timeEntryToWorklogFormatter->convert(
             $this->timeEntryStorage->getTimeEntries($startDate, $endDate)
         );
 
