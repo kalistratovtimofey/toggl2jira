@@ -58,6 +58,6 @@ class WorklogUploader
     {
         $timeSpentInMinutes = $this->worklogService->getTimeSpentInMinutes($workLog->timeSpent);
 
-        return $timeSpentInMinutes > 0 && !$this->worklogService->isWorklogExists($workLog);
+        return $timeSpentInMinutes > 0 && !$this->worklogService->isWorklogAlreadyUploaded($workLog);
     }
 }

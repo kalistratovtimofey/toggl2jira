@@ -23,21 +23,23 @@ class WorklogService
         $this->jiraApi = $jiraApi;
     }
 
-    public function isWorklogExists(WorkLogDTO $workLog): bool
+    public function isWorklogAlreadyUploaded(WorkLogDTO $workLog): bool
     {
         $issueWorklogs = $this->getIssueWorklogsFromLocalCache($workLog->issueKey);
 
-        $existedWorklogs = array_filter(
-          $issueWorklogs,
-          function ($issueWorklog) use ($workLog) {
-              $issueWorklogStartedDateTime = date('Y:m:d H:i:s', strtotime($issueWorklog['started']));
-              $worklogStartedDateTime = date('Y:m:d H:i:s', strtotime($workLog->started));
+        $isAlreadyUploaded = false;
 
-              return $this->isDatesEquals($issueWorklogStartedDateTime, $worklogStartedDateTime);
-          }
-        );
+        foreach ($issueWorklogs as $issueWorklog) {
+            $issueWorklogStartedDate = date('Y:m:d H:i:s', strtotime($issueWorklog['started']));
+            $worklogStartedDate = date('Y:m:d H:i:s', strtotime($workLog->started));
 
-        return count($existedWorklogs) > 0;
+            if ($this->isDatesEquals($issueWorklogStartedDate, $worklogStartedDate)) {
+                $isAlreadyUploaded = true;
+                break;
+            }
+        }
+
+        return $isAlreadyUploaded;
     }
 
     public function getTimeSpentInMinutes(string $timeSpentMinutes)

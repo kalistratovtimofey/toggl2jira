@@ -23,7 +23,7 @@ class TimeEntryToWorklogConverter
         foreach ($timeEntries as $key => $timeEntry) {
             $workLog = new WorkLogDTO();
 
-            $issueKey = $this->getIssueKeyFromTimeEntryDescription($timeEntry->description);
+            $issueKey = $this->getIssueKeyFromDescription($timeEntry->description);
 
             if ($issueKey === null) {
                 throw new \DomainException("Issue key not found for time entry with ID {$timeEntry->id}");
@@ -35,7 +35,7 @@ class TimeEntryToWorklogConverter
                 throw new \DomainException("Issue description not found for time entry with ID {$timeEntry->id}");
             }
 
-            $workLog->comment = $this->getIssueCommentFromTimeEntryDescription($timeEntry->description);
+            $workLog->comment = $this->getIssueCommentFromDescription($timeEntry->description);
 
             $durationInMinutes = $timeEntry->duration < 60 ? 1 : $timeEntry->duration / 60;
             $this->setShouldIncreaseNextTimeEntry($durationInMinutes);
@@ -53,14 +53,14 @@ class TimeEntryToWorklogConverter
         return $workLogs;
     }
 
-    private function getIssueKeyFromTimeEntryDescription(string $description): ?string
+    private function getIssueKeyFromDescription(string $description): ?string
     {
         preg_match('/.+?(?=:)/', $description, $taskKeyMatches);
 
         return isset($taskKeyMatches[0]) ? trim($taskKeyMatches[0]) : null;
     }
 
-    private function getIssueCommentFromTimeEntryDescription(string $description): ?string
+    private function getIssueCommentFromDescription(string $description): ?string
     {
         preg_match('/(?<=:)[^\]]+/', $description, $descriptionMatches);
 
