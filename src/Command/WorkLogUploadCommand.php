@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\WorkLogService;
+use App\Service\WorklogUploader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,15 +11,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 class WorkLogUploadCommand extends Command
 {
     /**
-     * @var WorkLogService
+     * @var WorklogUploader
      */
-    private $workLogService;
+    private $worklogUploader;
 
-    public function __construct(WorkLogService $workLogService)
+    public function __construct(WorklogUploader $worklogUploader)
     {
         parent::__construct();
 
-        $this->workLogService = $workLogService;
+        $this->worklogUploader = $worklogUploader;
     }
 
     protected static $defaultName = 'worklog:upload';
@@ -36,6 +36,6 @@ class WorkLogUploadCommand extends Command
         $startDate = $input->getOption('startDate');
         $endDate = $input->getOption('endDate');
 
-        $this->workLogService->uploadWorklogs($startDate, $endDate);
+        $this->worklogUploader->upload($startDate, $endDate);
     }
 }
