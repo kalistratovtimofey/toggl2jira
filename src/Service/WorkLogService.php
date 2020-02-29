@@ -25,6 +25,9 @@ class WorkLogService
      */
     private $timeEntryToWorkLogFormatter;
 
+    /** @var array */
+    private $cachedWorklogs;
+
     public function __construct(TogglApi $togglApi, JiraApi $jiraApi, TimeEntryToWorkLogFormatter $timeEntryToWorkLogFormatter)
     {
         $this->togglApi = $togglApi;
@@ -34,8 +37,8 @@ class WorkLogService
 
     public function uploadWorkLogs(string $startDate, ?string $endDate)
     {
-        $startDateTime = $this->getDateTimeFromString($startDate);
-        $endDateTime = $endDate ? $this->getDateTimeFromString($endDate) : null;
+        $startDateTime = $this->getTogglCompatibleDateTimeFromString($startDate);
+        $endDateTime = $endDate ? $this->getTogglCompatibleDateTimeFromString($endDate) : null;
 
         $workLogs = $this->timeEntryToWorkLogFormatter->format(
             $this->togglApi->getTimeEntries($startDateTime, $endDateTime)
@@ -44,7 +47,7 @@ class WorkLogService
         $this->uploadWorkLogsToJira($workLogs);
     }
 
-    private function getDateTimeFromString(string $dateTime): \DateTime
+    private function getTogglCompatibleDateTimeFromString(string $dateTime): \DateTime
     {
         return \DateTime::createFromFormat('Y-m-d H:i:s', $dateTime . ' 00:00:00');
     }
@@ -55,10 +58,51 @@ class WorkLogService
     private function uploadWorkLogsToJira(array $workLogs): void
     {
         foreach ($workLogs as $workLog) {
-            $timeSpentInMinutes = rtrim($workLog->timeSpent, self::MINUTES_POSTFIX_IN_DURATION);
-            if ((int)$timeSpentInMinutes > 0) {
+
+            if ($this->shouldUploadWorklog($workLog)) {
                 $this->jiraApi->addWorkLog($workLog);
             }
         }
+    }
+
+    private function shouldUploadWorklog(WorkLogDTO $workLogDTO): bool
+    {
+        $timeSpentInMinutes = (int) (rtrim($workLogDTO->timeSpent, self::MINUTES_POSTFIX_IN_DURATION));
+
+        return $timeSpentInMinutes > 0 && !$this->isWorklogExists($workLogDTO);
+    }
+
+    private function isWorklogExists(WorkLogDTO $workLogDTO): bool
+    {
+        $issueWorklogs = $this->getIssueWorklogsFromLocalCache($workLogDTO->issueKey);
+
+        $existedWorklogs = array_filter(
+          $issueWorklogs,
+          function ($worklog) use ($workLogDTO) {
+              $issueWorklogStartedDateTime = date('Y:m:d H:i:s', strtotime($worklog['started']));
+              $worklogStartedDateTime = date('Y:m:d H:i:s', strtotime($workLogDTO->started));
+
+              return $this->isDatesEquals($issueWorklogStartedDateTime, $worklogStartedDateTime);
+          }
+        );
+
+        return count($existedWorklogs) > 0;
+    }
+
+    private function getIssueWorklogsFromLocalCache(string $issueKey): array
+    {
+        if (!isset($this->cachedWorklogs[$issueKey])) {
+            $this->cachedWorklogs[$issueKey] = $this->jiraApi->findWorkLogs($issueKey);
+        }
+
+        return $this->cachedWorklogs[$issueKey];
+    }
+
+    private function isDatesEquals(string $date1, string $date2)
+    {
+        $dateTime1InUnix = strtotime($date1);
+        $dateTime2InUnix = strtotime($date2);
+
+        return $dateTime1InUnix === $dateTime2InUnix;
     }
 }

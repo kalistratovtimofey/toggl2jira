@@ -30,4 +30,13 @@ class JiraApi
           ],
         ]);
     }
+
+    public function findWorkLogs(string $issueKey)
+    {
+        $uri = "/rest/api/2/issue/$issueKey/worklog";
+
+        $response = $this->client->get($uri);
+
+        return json_decode($response->getBody(), true)['worklogs'];
+    }
 }

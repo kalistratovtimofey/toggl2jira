@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use App\Api\TogglApi;
 use App\Service\WorkLogService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -15,17 +14,12 @@ class WorkLogUploadCommand extends Command
      * @var WorkLogService
      */
     private $workLogService;
-    /**
-     * @var TogglApi
-     */
-    private $togglApi;
 
-    public function __construct(WorkLogService $workLogService, TogglApi $togglApi)
+    public function __construct(WorkLogService $workLogService)
     {
         parent::__construct();
 
         $this->workLogService = $workLogService;
-        $this->togglApi = $togglApi;
     }
 
     protected static $defaultName = 'worklog:upload';
