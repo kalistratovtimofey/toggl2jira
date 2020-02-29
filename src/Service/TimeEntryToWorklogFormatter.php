@@ -5,7 +5,7 @@ namespace App\Service;
 use App\DTO\TimeEntryDTO;
 use App\DTO\WorkLogDTO;
 
-class TimeEntryToWorkLogFormatter
+class TimeEntryToWorklogFormatter
 {
     /**
      * @var bool

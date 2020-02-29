@@ -3,17 +3,12 @@
 namespace App\Service;
 
 use App\Api\JiraApi;
-use App\Api\TogglApi;
 use App\DTO\WorkLogDTO;
+use App\Service\TimeEntryStorage\TimeEntryStorage;
 
 class WorkLogService
 {
     private const MINUTES_POSTFIX_IN_DURATION = "m";
-
-    /**
-     * @var TogglApi
-     */
-    private $togglApi;
 
     /**
      * @var JiraApi
@@ -21,41 +16,39 @@ class WorkLogService
     private $jiraApi;
 
     /**
-     * @var TimeEntryToWorkLogFormatter
+     * @var TimeEntryToWorklogFormatter
      */
-    private $timeEntryToWorkLogFormatter;
+    private $timeEntryToWorklogFormatter;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     private $cachedWorklogs;
+    /**
+     * @var TimeEntryStorage
+     */
+    private $timeEntryStorage;
 
-    public function __construct(TogglApi $togglApi, JiraApi $jiraApi, TimeEntryToWorkLogFormatter $timeEntryToWorkLogFormatter)
+    public function __construct(TimeEntryStorage $timeEntryStorage, JiraApi $jiraApi, TimeEntryToWorklogFormatter $timeEntryToWorklogFormatter)
     {
-        $this->togglApi = $togglApi;
+        $this->timeEntryStorage = $timeEntryStorage;
         $this->jiraApi = $jiraApi;
-        $this->timeEntryToWorkLogFormatter = $timeEntryToWorkLogFormatter;
+        $this->timeEntryToWorklogFormatter = $timeEntryToWorklogFormatter;
     }
 
-    public function uploadWorkLogs(string $startDate, ?string $endDate)
+    public function uploadWorklogs(string $startDate, ?string $endDate)
     {
-        $startDateTime = $this->getTogglCompatibleDateTimeFromString($startDate);
-        $endDateTime = $endDate ? $this->getTogglCompatibleDateTimeFromString($endDate) : null;
-
-        $workLogs = $this->timeEntryToWorkLogFormatter->format(
-            $this->togglApi->getTimeEntries($startDateTime, $endDateTime)
+        $workLogs = $this->timeEntryToWorklogFormatter->format(
+            $this->timeEntryStorage->getTimeEntries($startDate, $endDate)
         );
 
-        $this->uploadWorkLogsToJira($workLogs);
-    }
-
-    private function getTogglCompatibleDateTimeFromString(string $dateTime): \DateTime
-    {
-        return \DateTime::createFromFormat('Y-m-d H:i:s', $dateTime . ' 00:00:00');
+        $this->uploadWorklogsToJira($workLogs);
     }
 
     /**
      * @param WorkLogDTO[] $workLogs
      */
-    private function uploadWorkLogsToJira(array $workLogs): void
+    private function uploadWorklogsToJira(array $workLogs): void
     {
         foreach ($workLogs as $workLog) {
 

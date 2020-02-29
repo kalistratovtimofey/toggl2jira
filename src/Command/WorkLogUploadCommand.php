@@ -36,6 +36,6 @@ class WorkLogUploadCommand extends Command
         $startDate = $input->getOption('startDate');
         $endDate = $input->getOption('endDate');
 
-        $this->workLogService->uploadWorkLogs($startDate, $endDate);
+        $this->workLogService->uploadWorklogs($startDate, $endDate);
     }
 }
