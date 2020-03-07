@@ -26,14 +26,10 @@ class TimeEntryToWorklogConverter
             $issueKey = $this->getIssueKeyFromDescription($timeEntry->description);
 
             if ($issueKey === null) {
-                throw new \DomainException("Issue key not found for time entry with ID {$timeEntry->id}");
+                throw new \DomainException("Issue description not found for time entry with description: {$timeEntry->description}");
             }
 
             $workLog->issueKey = $issueKey;
-
-            if ($issueKey === null) {
-                throw new \DomainException("Issue description not found for time entry with ID {$timeEntry->id}");
-            }
 
             $workLog->comment = $this->getIssueCommentFromDescription($timeEntry->description);
 
