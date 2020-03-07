@@ -1,9 +1,11 @@
 <?php
 
-namespace App\DTO;
+namespace App\Entity;
 
-class WorkLogDTO
+class Worklog
 {
+    public const MINUTES_POSTFIX_IN_TIME_SPENT = "m";
+
     /** @var string */
     public $issueKey;
 

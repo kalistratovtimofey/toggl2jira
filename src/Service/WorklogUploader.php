@@ -2,15 +2,16 @@
 
 namespace App\Service;
 
-use App\DTO\WorkLogDTO;
+use App\Entity\Worklog;
 use App\Service\TimeEntryStorage\TimeEntryStorage;
+use App\Service\TimeEntryToWorklogConverter\TimeEntryToWorklogConverter;
 
 class WorklogUploader
 {
     /**
      * @var TimeEntryToWorklogConverter
      */
-    private $timeEntryToWorklogFormatter;
+    private $timeEntryToWorklogConverter;
 
     /**
      * @var TimeEntryStorage
@@ -23,18 +24,18 @@ class WorklogUploader
 
     public function __construct(
       TimeEntryStorage $timeEntryStorage,
-      TimeEntryToWorklogConverter $timeEntryToWorklogFormatter,
+      TimeEntryToWorklogConverter $timeEntryToWorklogConverter,
       WorklogService $worklogService
     )
     {
         $this->timeEntryStorage = $timeEntryStorage;
-        $this->timeEntryToWorklogFormatter = $timeEntryToWorklogFormatter;
+        $this->timeEntryToWorklogConverter = $timeEntryToWorklogConverter;
         $this->worklogService = $worklogService;
     }
 
     public function upload(string $startDate, ?string $endDate)
     {
-        $workLogs = $this->timeEntryToWorklogFormatter->convert(
+        $workLogs = $this->timeEntryToWorklogConverter->convert(
             $this->timeEntryStorage->getTimeEntries($startDate, $endDate)
         );
 
@@ -42,7 +43,7 @@ class WorklogUploader
     }
 
     /**
-     * @param WorkLogDTO[] $workLogs
+     * @param Worklog[] $workLogs
      */
     private function uploadWorklogs(array $workLogs): void
     {
@@ -54,7 +55,7 @@ class WorklogUploader
         }
     }
 
-    private function shouldUploadWorklog(WorkLogDTO $workLog): bool
+    private function shouldUploadWorklog(Worklog $workLog): bool
     {
         $timeSpentInMinutes = $this->worklogService->getTimeSpentInMinutes($workLog->timeSpent);
 

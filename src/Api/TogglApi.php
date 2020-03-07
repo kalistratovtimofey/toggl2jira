@@ -2,7 +2,7 @@
 
 namespace App\Api;
 
-use App\DTO\TimeEntryDTO;
+use App\Entity\TimeEntry;
 use GuzzleHttp\Client;
 
 class TogglApi
@@ -17,29 +17,32 @@ class TogglApi
         $this->client = $client;
     }
 
+    /**
+     * @return TimeEntry[]
+     * @throws \Exception
+     */
     public function getTimeEntries(\DateTime $startDate, \DateTime $endDate = null): array
     {
         $uri = $this->buildTimeEntriesUri($startDate, $endDate);
         $response = $this->client->get($uri);
-        $timeEntries = json_decode($response->getBody(), true);
+        $timeEntriesFromResponse = json_decode($response->getBody(), true);
 
-        $timeEntryDTOs = [];
+        $timeEntries = [];
 
-        foreach ($timeEntries as $timeEntry) {
-            $timeEntry = (array) $timeEntry;
+        foreach ($timeEntriesFromResponse as $timeEntryFromResponse) {
+            $timeEntryFromResponse = (array) $timeEntryFromResponse;
 
-            $timeEntryDTO = new TimeEntryDTO();
-            $timeEntryDTO->id = $timeEntry['id'];
-            $timeEntryDTO->description = $timeEntry['description'] ?? '';
-            $timeEntryDTO->at = new \DateTime($timeEntry['at']);
-            $timeEntryDTO->start = new \DateTime($timeEntry['start']);
-            $timeEntryDTO->stop = isset($timeEntry['stop']) ? new \DateTime($timeEntry['stop']) : null;
-            $timeEntryDTO->duration = $timeEntry['duration'];
+            $timeEntry = new TimeEntry();
+            $timeEntry->id = $timeEntryFromResponse['id'];
+            $timeEntry->description = $timeEntryFromResponse['description'] ?? '';
+            $timeEntry->startTime = new \DateTime($timeEntryFromResponse['start']);
+            $timeEntry->finishTime = isset($timeEntryFromResponse['stop']) ? new \DateTime($timeEntryFromResponse['stop']) : null;
+            $timeEntry->durationInSeconds = $timeEntryFromResponse['duration'];
 
-            $timeEntryDTOs[] = $timeEntryDTO;
+            $timeEntries[] = $timeEntry;
         }
 
-        return $timeEntryDTOs;
+        return $timeEntries;
     }
 
     private function buildTimeEntriesUri(\DateTime $startDate, \DateTime $endDate = null): string

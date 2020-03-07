@@ -1,24 +1,21 @@
 <?php
 
-namespace App\DTO;
+namespace App\Entity;
 
-class TimeEntryDTO
+class TimeEntry
 {
     /** @var int */
     public $id;
 
     /** @var \DateTime */
-    public $start;
+    public $startTime;
 
     /** @var \DateTime */
-    public $stop;
+    public $finishTime;
 
     /** @var int */
-    public $duration;
+    public $durationInSeconds;
 
     /** @var string */
     public $description;
-
-    /** @var \DateTime */
-    public $at;
 }

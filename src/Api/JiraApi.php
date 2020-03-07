@@ -2,7 +2,7 @@
 
 namespace App\Api;
 
-use App\DTO\WorkLogDTO;
+use App\Entity\Worklog;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 
@@ -18,20 +18,20 @@ class JiraApi
         $this->client = $client;
     }
 
-    public function addWorkLog(WorkLogDTO $workLogDTO)
+    public function addWorklog(Worklog $worklog): void
     {
-        $uri = "/rest/api/2/issue/{$workLogDTO->issueKey}/worklog";
+        $uri = "/rest/api/2/issue/{$worklog->issueKey}/worklog";
 
         $this->client->post($uri, [
           RequestOptions::JSON => [
-            'started' => $workLogDTO->started,
-            'comment' => $workLogDTO->comment,
-            'timeSpent' => $workLogDTO->timeSpent
+            'started' => $worklog->started,
+            'comment' => $worklog->comment,
+            'timeSpent' => $worklog->timeSpent
           ],
         ]);
     }
 
-    public function findWorkLogs(string $issueKey)
+    public function findWorklogs(string $issueKey): array
     {
         $uri = "/rest/api/2/issue/$issueKey/worklog";
 

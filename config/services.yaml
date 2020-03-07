@@ -43,6 +43,3 @@ services:
     App\Api\TogglApi:
         arguments:
             - '@guzzle.client.toggl_api'
-
-    App\Manager\TogglManager:
-        public: true

@@ -2,10 +2,11 @@
 
 namespace App\Service;
 
-use App\DTO\TimeEntryDTO;
-use App\DTO\WorkLogDTO;
+use App\Entity\TimeEntry;
+use App\Entity\Worklog;
+use App\Service\TimeEntryToWorklogConverter\TimeEntryToWorklogConverter;
 
-class TimeEntryToWorklogConverter
+class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 {
     /**
      * @var bool
@@ -13,15 +14,15 @@ class TimeEntryToWorklogConverter
     private $shouldIncreaseNextTimeEntry;
 
     /**
-     * @param  TimeEntryDTO[]  $timeEntries
-     * @return WorkLogDTO[]
+     * @param  TimeEntry[]  $timeEntries
+     * @return Worklog[]
      */
-    public function convert(array $timeEntries)
+    public function convert(array $timeEntries): array
     {
         $workLogs = [];
 
         foreach ($timeEntries as $key => $timeEntry) {
-            $workLog = new WorkLogDTO();
+            $workLog = new Worklog();
 
             $issueKey = $this->getIssueKeyFromDescription($timeEntry->description);
 
@@ -33,13 +34,13 @@ class TimeEntryToWorklogConverter
 
             $workLog->comment = $this->getIssueCommentFromDescription($timeEntry->description);
 
-            $durationInMinutes = $timeEntry->duration < 60 ? 1 : $timeEntry->duration / 60;
+            $durationInMinutes = $timeEntry->durationInSeconds < 60 ? 1 : $timeEntry->durationInSeconds / 60;
             $this->setShouldIncreaseNextTimeEntry($durationInMinutes);
 
-            $workLog->timeSpent = round($durationInMinutes) . WorklogService::MINUTES_POSTFIX_IN_DURATION;
+            $workLog->timeSpent = round($durationInMinutes) . Worklog::MINUTES_POSTFIX_IN_TIME_SPENT;
 
-            $previousTimeEntryStart = isset($timeEntries[$key - 1]) ? $timeEntries[$key - 1]->start : null;
-            $workLog->started = $this->getStartedTime($timeEntry->start, $previousTimeEntryStart);
+            $previousTimeEntryStart = isset($timeEntries[$key - 1]) ? $timeEntries[$key - 1]->startTime : null;
+            $workLog->started = $this->getStartedTime($timeEntry->startTime, $previousTimeEntryStart);
             $this->shouldIncreaseNextTimeEntry = false;
 
 
