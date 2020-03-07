@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Service;
+namespace App\Service\TimeEntryToWorklogConverter;
 
 use App\Entity\TimeEntry;
 use App\Entity\Worklog;
-use App\Service\TimeEntryToWorklogConverter\TimeEntryToWorklogConverter;
 
 class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 {
