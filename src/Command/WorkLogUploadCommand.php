@@ -43,7 +43,7 @@ class WorkLogUploadCommand extends Command
     {
         $uploadedWorklogsCount = 0;
 
-        $this->listenWorkbookAddedEvent($output, $uploadedWorklogsCount);
+        $this->listenWorklogAddedEvent($output, $uploadedWorklogsCount);
         $startDate = $input->getOption('startDate');
         $endDate = $input->getOption('endDate');
 
@@ -56,7 +56,7 @@ class WorkLogUploadCommand extends Command
         return 0;
     }
 
-    private function listenWorkbookAddedEvent(OutputInterface $output, &$uploadedWorklogsCount): void
+    private function listenWorklogAddedEvent(OutputInterface $output, &$uploadedWorklogsCount): void
     {
         $this->eventDispatcher->addListener(
             WorklogAddedEvent::NAME,
