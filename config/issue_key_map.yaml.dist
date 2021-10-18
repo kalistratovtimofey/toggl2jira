@@ -1,0 +1,8 @@
+parameters:
+  # Task alias map with task ID in Jira, like:
+  # 'misc': COM-111
+  issue_key_map:
+    'misc': 'COM-1111'
+    'meet': 'COM-2222'
+    'cr': 'COM-3333'
+    'tr': 'COM-4444'

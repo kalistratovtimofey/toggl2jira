@@ -1,3 +1,6 @@
+imports:
+  - { resource: 'issue_key_map.yaml' }
+
 parameters:
 
 services:
@@ -43,3 +46,7 @@ services:
     App\Api\TogglApi:
         arguments:
             - '@guzzle.client.toggl_api'
+
+    App\Service\TimeEntryToWorklogConverter\DefaultTimeEntryToWorklogConverter:
+        arguments:
+            - '%issue_key_map%'

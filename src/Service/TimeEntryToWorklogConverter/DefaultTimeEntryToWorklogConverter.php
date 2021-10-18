@@ -7,6 +7,18 @@ use App\Entity\Worklog;
 
 class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 {
+    public function __construct($issueKeyMap)
+    {
+        dd($issueKeyMap);
+    }
+
+    private const ISSUE_KEY_MAP = [
+      'misc' => 'COM-1536',
+      'meet' => 'COM-1522',
+      'cr' => 'COM-1964',
+      'tr' => 'COM-1632'
+    ];
+
     /**
      * @var bool
      */
@@ -53,7 +65,9 @@ class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
     {
         preg_match('/.+?(?=:)/', $description, $taskKeyMatches);
 
-        return isset($taskKeyMatches[0]) ? trim($taskKeyMatches[0]) : null;
+        return isset($taskKeyMatches[0]) ?
+            self::ISSUE_KEY_MAP[trim($taskKeyMatches[0])] ?? trim($taskKeyMatches[0])
+            : null;
     }
 
     private function getIssueCommentFromDescription(string $description): ?string

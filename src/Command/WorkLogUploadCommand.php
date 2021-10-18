@@ -35,8 +35,8 @@ class WorkLogUploadCommand extends Command
     protected function configure()
     {
         $this
-          ->addOption('startDate', null,InputArgument::OPTIONAL, "Time entries start date")
-          ->addOption('endDate', null, InputArgument::OPTIONAL, "Time entries end date");
+          ->addOption('from', null,InputArgument::OPTIONAL, "Time entries start date")
+          ->addOption('to', null, InputArgument::OPTIONAL, "Time entries end date");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -44,8 +44,8 @@ class WorkLogUploadCommand extends Command
         $uploadedWorklogsCount = 0;
 
         $this->listenWorklogAddedEvent($output, $uploadedWorklogsCount);
-        $startDate = $input->getOption('startDate');
-        $endDate = $input->getOption('endDate');
+        $startDate = $input->getOption('from') ?? date('Y-m-d',strtotime("-1 days"));
+        $endDate = $input->getOption('to') ?? date('Y-m-d');
 
         $this->worklogUploader->upload($startDate, $endDate);
 
