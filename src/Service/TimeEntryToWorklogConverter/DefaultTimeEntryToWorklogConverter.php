@@ -7,11 +7,6 @@ use App\Entity\Worklog;
 
 class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 {
-    public function __construct($issueKeyMap)
-    {
-        dd($issueKeyMap);
-    }
-
     private const ISSUE_KEY_MAP = [
       'misc' => 'COM-1536',
       'meet' => 'COM-1522',
