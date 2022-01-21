@@ -33,7 +33,13 @@ class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
             $issueKey = $this->getIssueKeyFromDescription($timeEntry->description);
 
             if ($issueKey === null) {
-                throw new \DomainException("Issue description not found for time entry with description: {$timeEntry->description}");
+                throw new \DomainException(
+                    sprintf(
+                        "Issue description not found for time entry with start time: %s and finish time: %s",
+                        $timeEntry->startTime->format('Y-m-d H:i:s'),
+                        $timeEntry->finishTime->format('Y-m-d H:i:s')
+                    )
+                );
             }
 
             $workLog->issueKey = $issueKey;
