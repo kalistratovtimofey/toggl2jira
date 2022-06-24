@@ -44,7 +44,11 @@ class WorkLogUploadCommand extends Command
         $uploadedWorklogsCount = 0;
 
         $this->listenWorklogAddedEvent($output, $uploadedWorklogsCount);
-        $startDate = $input->getOption('from') ?? date('Y-m-d',strtotime("-1 days"));
+
+        $fromDateFromOption = $input->getOption('from');
+        $startDate = $fromDateFromOption && $fromDateFromOption !== ''
+            ? $fromDateFromOption
+            : date('Y-m-d',strtotime("-1 days"));
         $endDate = $input->getOption('to') ?? date('Y-m-d');
 
         $this->worklogUploader->upload($startDate, $endDate);
