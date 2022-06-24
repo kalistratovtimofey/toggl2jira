@@ -7,12 +7,17 @@ use App\Entity\Worklog;
 
 class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 {
+    private const ISSUE_NUM_REGEX = '/(.+?(?=:))|((\w+-\d+)+)/';
     private const ISSUE_KEY_MAP = [
       'misc' => 'COM-1536',
       'meet' => 'COM-1522',
       'cr' => 'COM-1964',
       'tr' => 'COM-1632'
     ];
+
+    public function __construct(private $defaultIssueNum)
+    {
+    }
 
     /**
      * @var bool
@@ -32,7 +37,7 @@ class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 
             $issueKey = $this->getIssueKeyFromDescription($timeEntry->description);
 
-            if ($issueKey === null) {
+            if ($issueKey === null && !$this->defaultIssueNum) {
                 throw new \DomainException(
                     sprintf(
                         "Issue description not found for time entry with start time: %s and finish time: %s",
@@ -42,9 +47,9 @@ class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
                 );
             }
 
-            $workLog->issueKey = $issueKey;
+            $workLog->issueKey = $issueKey ?? $this->defaultIssueNum;
 
-            $workLog->comment = $this->getIssueCommentFromDescription($timeEntry->description);
+            $workLog->comment = $this->getIssueCommentFromDescription($timeEntry->description, $workLog->issueKey);
 
             $durationInMinutes = $timeEntry->durationInSeconds < 60 ? 1 : $timeEntry->durationInSeconds / 60;
             $this->setShouldIncreaseNextTimeEntry($durationInMinutes);
@@ -64,18 +69,15 @@ class DefaultTimeEntryToWorklogConverter implements TimeEntryToWorklogConverter
 
     private function getIssueKeyFromDescription(string $description): ?string
     {
-        preg_match('/.+?(?=:)/', $description, $taskKeyMatches);
-
+        preg_match(self::ISSUE_NUM_REGEX, $description, $taskKeyMatches);
         return isset($taskKeyMatches[0]) ?
             self::ISSUE_KEY_MAP[trim($taskKeyMatches[0])] ?? trim($taskKeyMatches[0])
             : null;
     }
 
-    private function getIssueCommentFromDescription(string $description): ?string
+    private function getIssueCommentFromDescription(string $description, string $issueKey): ?string
     {
-        preg_match('/(?<=:)[^\]]+/', $description, $descriptionMatches);
-
-        return isset($descriptionMatches[0]) ? trim($descriptionMatches[0]) : null;
+        return str_replace($issueKey, '', $description);
     }
 
     private function getStartedTime(\DateTime $currentDateTime, ?\DateTime $previousDateTime)
