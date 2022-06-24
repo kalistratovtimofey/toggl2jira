@@ -4,7 +4,7 @@ namespace App\Entity;
 
 class TimeEntry
 {
-    /** @var int */
+    /** @var int|string */
     public $id;
 
     /** @var \DateTime */

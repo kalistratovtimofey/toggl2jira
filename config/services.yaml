@@ -7,6 +7,8 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+          App\Service\TimeEntryStorage\TimeEntryStorage: '@App\Service\TimeEntryStorage\TimeEntryStorageSelector'
 
     App\:
         resource: '../src/*'
@@ -39,6 +41,15 @@ services:
               connect_timeout: 3
               exceptions: true
 
+    guzzle.client.clockify_api:
+      class: 'GuzzleHttp\Client'
+      arguments:
+        - base_uri: '%env(CLOCKIFY_HOST)%'
+          headers:
+            X-Api-Key: '%env(CLOCKIFY_API_KEY)%'
+          connect_timeout: 3
+          exceptions: true
+
     App\Api\JiraApi:
         arguments:
             - '@guzzle.client.jira_api'
@@ -47,6 +58,16 @@ services:
         arguments:
             - '@guzzle.client.toggl_api'
 
+    App\Api\ClockifyApi:
+      arguments:
+        - '@guzzle.client.clockify_api'
+        - '%env(CLOCKIFY_USER_ID)%'
+        - '%env(CLOCKIFY_WORKSPACE_ID)%'
+
     App\Service\TimeEntryToWorklogConverter\DefaultTimeEntryToWorklogConverter:
         arguments:
-            - '%issue_key_map%'
+          $defaultIssueNum: '%env(DEFAULT_ISSUE_KEY)%'
+
+    App\Service\TimeEntryStorage\TimeEntryStorageSelector:
+      arguments:
+        $selectedStorage: '%env(TRACKER_TYPE)%'
